@@ -42,6 +42,8 @@ dotMap.prototype.setDim = function(){
     var rwidth = 550;
   }
 
+  console.log(rwidth);
+
   //for svg map
   this.width = rwidth-10; //allow a little padding
   this.height = this.width*this.aspect;
