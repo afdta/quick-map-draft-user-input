@@ -89,6 +89,7 @@ dotMap.prototype.drawMap = function(all, callback){
 
   //callback called with 
   try{
+    self.setDim();
     callback.call(this); 
   }
   catch(e){

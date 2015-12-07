@@ -19,32 +19,21 @@
 <script>
   var el = document.getElementById("wfrey-map-wrap");
   var map = new dotMap(el);
-
-  var callback = function(){
-    return null;
-    var origin = [10,270];
-    this.wrap.style("width","950px");
-    this.layer.attr("transform","translate(200,0)");
-    origin[0] = origin[0]-200;
-
-    this.layer.append("circle").attr({"cx":origin[0], "cy":origin[1], "r":22});
-
-    var self = this;
-
-    this.metros.attr({"r":11,"fill":"#a4c7f2"});
-    var routes = this.layer.selectAll("path.route").data(this.xy);
-    routes.enter().append("path").classed("route",true);
-    routes.attr("d",function(d,i){
-      var dest = self.proj([d.lon,d.lat]);
-      var p = "M"+ origin[0] + "," + origin[1];
-      p = p + " C"+ (origin[0]+10) + "," + (origin[1]-15) + " ";
-      p = p + (dest[0]-10) + "," + (dest[1]-10) + " ";
-      p = p + dest[0] + "," + dest[1];
-      return p;
-    }).attr({"fill":"none","stroke":"#eeeeee"});
+  var repo = "./data/";
+  var parser = function(ROW){
+    console.log(ROW);
+    return {a:1};
+  };
+  d3.csv((repo + "FreySegregationMap.csv"), parser, function(ERR,DAT){
+    console.log(DAT);
+    var callback = function(){
+      //this == map object
+      console.log(this);
+    });
+    map.drawMap(true, callback);
   }
 
-  map.drawMap(true, callback);
+  
 
 </script>
 
