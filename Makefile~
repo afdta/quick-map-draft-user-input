@@ -1,0 +1,125 @@
+#This Makefile is adapted from an example by Mike Bostock: http://bost.ocks.org/mike/bubble-map/?utm_content=buffer8c440&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer
+
+#in makefiles, the target is first, followed by the :
+#items listed after the : are prerequisites, which can be separated by spaces
+#general structure is   target ... : prerequisites ...
+#								recipe
+#								...
+#								...
+
+#note that commands in make create a separate shell, so cd will run the cd, but subsequent commands won't be run from that new directory
+#one workaround: use cd dir && command or just command dir/target
+
+#to run each part of the recipe separately, run make target, e.g. make build/gz_2010_us_050_00_20m.zip
+
+build/gz_2010_us_050_00_20m.zip:
+	mkdir -p $(dir $@)
+	curl -o $@ http://www2.census.gov/geo/tiger/GENZ2010/$(notdir $@)
+
+#Syntax note: Above $@ is the path to the target file, $(dir $@) is the directory 
+#containing the target file, and $(notdir $@) is the target file name. These abbreviations 
+#are faster to read and help avoid typos, but use long names if you find them too cryptic
+
+build/gz_2010_us_050_00_20m.shp: build/gz_2010_us_050_00_20m.zip
+	unzip -od $(dir $@) $<
+	touch $@
+
+#Syntax note: The abbreviation $< is shorthand for the first prerequisite of this rule: 
+#the zipped shapefile. We disable filtering so that all small counties are retained after simplifying.
+#the -od option passed to unzip overwrites and specifies the directory to unzip to
+#the touch command updates the file date, see man touch
+
+build/counties.json: build/gz_2010_us_050_00_20m.shp
+	node_modules/.bin/topojson \
+		-o $@ \
+		--id-property STATE+COUNTY \
+		-p NAME,STATE \
+		--filter none \
+		-- counties=$<
+#		--simplify .000001 \
+#--projection d3.geo.albersUsa() \
+
+#create states file using merge - this is the method used in the Let's make a map example, you can also view the topojson-merge code for more details
+build/stco.json: build/counties.json
+	node_modules/.bin/topojson-merge \
+		-o $@ \
+		--in-object counties \
+		--out-object states \
+		--p STATE \
+		--key 'd.properties.STATE' \
+		-- $<
+
+build/us.json: build/stco.json
+	node_modules/.bin/topojson-merge \
+		-o $@ \
+		--in-object states \
+		--out-object us \
+		--key null \
+		-- $<
+
+#build metro files
+build/gz_2010_us_310_m1_20m.zip:
+	mkdir -p $(dir $@)
+	curl -o $@ http://www2.census.gov/geo/tiger/GENZ2010/$(notdir $@)
+
+build/gz_2010_us_310_m1_20m.shp: build/gz_2010_us_310_m1_20m.zip
+	unzip -od $(dir $@) $<
+	touch $@
+
+build/metros.json: build/gz_2010_us_310_m1_20m.shp
+	node_modules/.bin/topojson \
+		-o $@ \
+		-p NAME,LSAD \
+		--id-property CBSA \
+		--simplify .000001 \
+		--filter none \
+		-- metros=$<
+
+		#--projection 'd3.geo.albersUsa()'\
+
+#grap js dependencies
+d3v3.js:
+	curl -o $@ http://d3js.org/d3.v3.min.js
+
+topojson.js:
+	curl -o $@ http://d3js.org/topojson.v1.min.js
+
+
+#NOTE ON THE ABILITY TO CREATE TRANSFORMED VARIABLES IN TOPOJSON FROM: https://github.com/mbostock/topojson/commit/c755c48fc52d359852d56c24f6dafa841698830b
+#Allow --id-property and --properties expressions.
+#You can now use JavaScript expressions to more flexibly define how ids and
+#properties are computed. This is an expansion on the previous support for
+#coercing numeric ids (`+foo`). For example, to concatenate the string properties
+#foo and bar into baz, you can say `-p baz=foo+bar`. Similarly, to define the id
+#as the last five characters of foo, say `--id-property='foo.slice(-5)'`.
+#
+#Generally, -p expressions should be combined with an explicit target name, of
+#the form `-p target=source`, which target is the name of the output property,
+#and source is the JavaScript expression to compute the value of the output
+#property from the source properties. For backwards-compatibility, expressions of
+#the form `+name` imply a target name of “name”. However, note that this does not
+#apply to other expressions, such as `name+""`; to coerce to a string, you’d want
+#to say `name=name+""`.
+
+#Fixes #107.
+
+
+#OLD CODE
+
+#build state files
+#build/gz_2010_us_040_00_20m.zip:
+#	mkdir -p $(dir $@)
+#	curl -o $@ http://www2.census.gov/geo/tiger/GENZ2010/$(notdir $@)
+
+#build/gz_2010_us_040_00_20m.shp: build/gz_2010_us_040_00_20m.zip
+#	unzip -od $(dir $@) $<
+#	touch $@
+
+#build/states.json: build/gz_2010_us_040_00_20m.shp
+#	node_modules/.bin/topojson \
+#		-o $@ \
+#		-p \
+#		--projection 'd3.geo.albersUsa()'\
+#		--simplify=5 \
+#		--filter none \
+#		-- states=$<
