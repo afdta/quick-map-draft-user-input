@@ -117,6 +117,6 @@ dotMap.prototype.drawMap = function(all, callback){
     
   });
 
-  setDim();
+  self.setDim();
 
 }
