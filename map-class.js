@@ -45,7 +45,7 @@ dotMap.prototype.setDim = function(){
   console.log(rwidth);
 
   //for svg map
-  this.width = rwidth;
+  this.width = rwidth - 10;
   this.height = this.width*this.aspect;
   this.svg.style("height",(this.height+"px")); //set SVG container height, width is always 100%
 
@@ -56,6 +56,7 @@ dotMap.prototype.setDim = function(){
 //callback is 
 dotMap.prototype.drawMap = function(all, callback){
   this.setDim();
+  return null;
   var STATEG = this.stateG;
   var DOTG = this.dotG;
 
