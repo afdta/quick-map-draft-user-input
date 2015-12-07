@@ -21,20 +21,26 @@
   var map = new dotMap(el);
   var repo = "./data/";
   var parser = function(ROW){
-    console.log(ROW);
-    return {a:1};
+    return {
+      CBSA_Code: ROW.CBSA_Code,
+      name: ROW.CBSA_Title,
+      index: +ROW.Index,
+      cat: +ROW.Group
+    }
   };
   d3.csv((repo + "FreySegregationMap.csv"), parser, function(ERR,DAT){
     console.log(DAT);
     var callback = function(){
       //this == map object
-      console.log(this);
+      var sel = this.metros.data(DAT, function(d,i){
+        return d.CBSA_Code;
+      });
+      sel.enter().append("circle");
+      sel.exit().remove("circle");
+      return sel;
     };
     map.drawMap(true, callback);
   });
-
-  
-
 </script>
 
 </html>

@@ -16,6 +16,7 @@ function dotMap(container){
   this.path = d3.geo.path().projection(this.path);
 
   this.metros = null;
+  this.metrosel = null;
   this.states = null;
   this.xy = null;
 
@@ -90,7 +91,7 @@ dotMap.prototype.drawMap = function(all, callback){
   //callback called with 
   try{
     self.setDim();
-    callback.call(this); 
+    self.metros = callback.call(self); 
   }
   catch(e){
     var noCall = true;
@@ -100,15 +101,25 @@ dotMap.prototype.drawMap = function(all, callback){
     self.setDim();
     states.attr("d",function(d,i){return self.path(d)}).attr({"stroke":"#eeeeee","stroke-width":"0.5px","fill":"#ffffff"});
     metros.attr("cx", function(d,i){
-        var coord = self.proj([d.lon,d.lat]);
-        return coord[0];
+        try{
+          var coord = self.proj([d.lon,d.lat])[0];
+        }
+        catch(e){
+          var coord = 0;
+        }
+        return coord;
       })
       .attr("cy", function(d,i){
-        var coord = self.proj([d.lon,d.lat]);
-        return coord[1];
+        try{
+          var coord = self.proj([d.lon,d.lat])[1];
+        }
+        catch(e){
+          var coord = 0;
+        }
+        return coord;
       });
     try{
-      callback.call(self);
+      self.metros = callback.call(self);
     }
     catch(e){
       var noCall = true;
