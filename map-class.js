@@ -42,9 +42,6 @@ dotMap.prototype.setDim = function(){
     var rwidth = 550;
   }
 
-  console.log(this);
-  console.log(rwidth);
-
   //for svg map
   this.width = rwidth - 10;
   this.height = this.width*this.aspect;
@@ -56,14 +53,15 @@ dotMap.prototype.setDim = function(){
 
 //callback is 
 dotMap.prototype.drawMap = function(all, callback){
+  var self = this;
+  console.log(self.wrap.node().getBoundingClientRect().right - self.wrap.node().getBoundingClientRect().left);
   this.setDim();
-  var STATEG = this.stateG;
+  /*var STATEG = this.stateG;
   var DOTG = this.dotG;
 
   var HEIGHT = this.height;
   var WIDTH = this.width;
   var METROLIST = this.metros;
-  var self = this;
 
   var states = STATEG.selectAll("path.states").data([this.stjson]);
   states.enter().append("path").classed("states",true);
@@ -115,8 +113,10 @@ dotMap.prototype.drawMap = function(all, callback){
       var noCall = true;
     }
     
-  });
+  });*/
 
-  self.setDim();
+  setTimeout(function(){
+    console.log(self.wrap.node().getBoundingClientRect().right - self.wrap.node().getBoundingClientRect().left);
+  },5000)
 
 }
