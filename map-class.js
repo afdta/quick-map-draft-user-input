@@ -64,7 +64,7 @@ dotMap.prototype.drawMap = function(all, callback){
   var METROLIST = this.metros;
   var self = this;
 
-  var states = STATEG.selectAll("path.states").data([this.stjson]);
+  /*var states = STATEG.selectAll("path.states").data([this.stjson]);
   states.enter().append("path").classed("states",true);
   states.exit().remove();
   states.attr("d",function(d,i){
@@ -114,8 +114,8 @@ dotMap.prototype.drawMap = function(all, callback){
       var noCall = true;
     }
     
-  });
+  });*/
 
-  this.setDim();
+  setTimeout(this.setDim, 5000);
 
 }
