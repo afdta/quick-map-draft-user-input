@@ -10,7 +10,7 @@ function dotMap(container){
   this.dotG = this.svg.append("g").attr("transform","translate(0,0)");
 
   this.tooltipWrap = this.wrap.append("div").style({"position":"absolute", "top":"0px", "left":"0px", "width":"100%", "height":"100%"});
-  this.tooltip = tooltipWrap.append("div").style({"position":"absolute","width":"200px","height":"auto","top":"0px","left":"0px","border":"1px solid #dddddd","background-color":"#ffffff"});
+  this.tooltip = this.tooltipWrap.append("div").style({"position":"absolute","width":"200px","height":"auto","top":"0px","left":"0px","border":"1px solid #dddddd","background-color":"#ffffff"});
 
   this.proj = d3.geo.albersUsa().scale(this.width*this.proj_scale).translate([this.width/2, this.height/2]);  
   this.path = d3.geo.path().projection(this.path);
