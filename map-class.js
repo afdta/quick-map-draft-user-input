@@ -1,4 +1,4 @@
-//DEPENDS: d3
+//DEPENDS: d3 
 
 function dotMap(container){
   this.wrap = d3.select(container);
