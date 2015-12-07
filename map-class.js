@@ -56,7 +56,6 @@ dotMap.prototype.setDim = function(){
 //callback is 
 dotMap.prototype.drawMap = function(all, callback){
   this.setDim();
-  return null;
   var STATEG = this.stateG;
   var DOTG = this.dotG;
 
@@ -116,5 +115,7 @@ dotMap.prototype.drawMap = function(all, callback){
     }
     
   });
+
+  this.setDim();
 
 }
