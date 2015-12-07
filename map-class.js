@@ -54,9 +54,9 @@ dotMap.prototype.setDim = function(){
 //callback is 
 dotMap.prototype.drawMap = function(all, callback){
   var self = this;
-  console.log(self.wrap.node().getBoundingClientRect().right - self.wrap.node().getBoundingClientRect().left);
+
   this.setDim();
-  /*var STATEG = this.stateG;
+  var STATEG = this.stateG;
   var DOTG = this.dotG;
 
   var HEIGHT = this.height;
@@ -113,10 +113,6 @@ dotMap.prototype.drawMap = function(all, callback){
       var noCall = true;
     }
     
-  });*/
-
-  setTimeout(function(){
-    console.log(self.wrap.node().getBoundingClientRect().right - self.wrap.node().getBoundingClientRect().left);
-  },5000)
+  });
 
 }
