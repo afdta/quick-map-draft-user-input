@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--<link rel="stylesheet" type="text/css" href="quickmap.css">-->
+<script src="../d3min.js"></script>
+<script src="../map-class.js"></script>
+
+</head>
+
+
+<body style="margin:20px;">
+  <div id="map-wrap"></div>
+</body>
+
+<script>
+  var el = document.getElementById("map-wrap");
+  var map = new dotMap(el);
+
+  var callback = function(){
+    return null;
+    var origin = [10,270];
+    this.wrap.style("width","950px");
+    this.layer.attr("transform","translate(200,0)");
+    origin[0] = origin[0]-200;
+
+    this.layer.append("circle").attr({"cx":origin[0], "cy":origin[1], "r":22});
+
+    var self = this;
+
+    this.metros.attr({"r":11,"fill":"#a4c7f2"});
+    var routes = this.layer.selectAll("path.route").data(this.xy);
+    routes.enter().append("path").classed("route",true);
+    routes.attr("d",function(d,i){
+      var dest = self.proj([d.lon,d.lat]);
+      var p = "M"+ origin[0] + "," + origin[1];
+      p = p + " C"+ (origin[0]+10) + "," + (origin[1]-15) + " ";
+      p = p + (dest[0]-10) + "," + (dest[1]-10) + " ";
+      p = p + dest[0] + "," + dest[1];
+      return p;
+    }).attr({"fill":"none","stroke":"#eeeeee"});
+  }
+
+</script>
+
+</html>

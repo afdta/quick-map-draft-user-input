@@ -6,7 +6,11 @@ function dotMap(container){
   this.height = this.width * this.aspect;
   
   this.svg = this.wrap.append("svg").style({"width":"100%", "height":(this.height+"px")});
-  this.layer = this.svg.append("g").attr("transform","translate(0,0)"); 
+  this.stateG = this.svg.append("g").attr("transform","translate(0,0)");
+  this.dotG = this.svg.append("g").attr("transform","translate(0,0)");
+
+  this.tooltipWrap = this.wrap.append("div").style({"position":"absolute", "top":"0px", "left":"0px", "width":"100%", "height":"100%"});
+  this.tooltip = tooltipWrap.append("div").style({"position":"absolute","width":"200px","height":"auto","top":"0px","left":"0px","border":"1px solid #dddddd";"background-color":"#ffffff";});
 
   this.proj = d3.geo.albersUsa().scale(this.width*this.proj_scale).translate([this.width/2, this.height/2]);  
   this.path = d3.geo.path().projection(this.path);
@@ -14,6 +18,9 @@ function dotMap(container){
   this.metros = null;
   this.states = null;
   this.xy = null;
+
+  //basic styles
+  this.wrap.style({"position":"relative"});
 }
 
 dotMap.prototype.aspect = 0.7; //determines the height of the svg container
@@ -27,6 +34,9 @@ dotMap.prototype.setDim = function(){
     var wiw = window.innerWidth;
     var rect = this.wrap.node().getBoundingClientRect();
     var rwidth = rect.right-rect.left;
+    if(rwidth < 300 || rwidth > 1000){
+      throw "Bad width calculation";
+    }
   }
   catch(e){
     var rwidth = 550;
@@ -34,7 +44,6 @@ dotMap.prototype.setDim = function(){
 
   //for svg map
   this.width = rwidth-10; //allow a little padding
-  //if(this.width > 950){this.width = 940} //enforce a max width
   this.height = this.width*this.aspect;
   this.svg.style("height",(this.height+"px")); //set SVG container height, width is always 100%
 
@@ -45,27 +54,27 @@ dotMap.prototype.setDim = function(){
 //callback is 
 dotMap.prototype.drawMap = function(all, callback){
   this.setDim();
-  var SVG = this.layer;
+  var STATEG = this.stateG;
+  var DOTG = this.dotG;
+
   var HEIGHT = this.height;
   var WIDTH = this.width;
   var METROLIST = this.metros;
   var self = this;
 
-  var r = SVG.selectAll("rect").data([0]);
-  r.enter().append("rect");
-  r.attr({"x":0,"y":0,"height":HEIGHT,"width":WIDTH,"fill":"none","stroke":"none"});
-
-  var states = SVG.selectAll("path.states").data([this.stjson]);
+  var states = STATEG.selectAll("path.states").data([this.stjson]);
   states.enter().append("path").classed("states",true);
   states.exit().remove();
-  states.attr("d",function(d,i){return self.path(d)}).attr({"stroke":"#eeeeee","stroke-width":"0.5px","fill":"#ffffff"});
+  states.attr("d",function(d,i){
+    return self.path(d)
+  }).attr({"stroke":"#eeeeee","stroke-width":"0.5px","fill":"#ffffff"});
 
   this.xy = !!all ? this.lonlat.t100.concat(this.lonlat.rest) : this.lonlat.t100;
 
-  var metros = SVG.selectAll("circle.metro").data(this.xy);
+  var metros = DOTG.selectAll("circle.metro").data(this.xy);
   metros.enter().append("circle").classed("metro",true);
   metros.exit().remove();
-  metros.attr({"fill":"#999999", "stroke":"#ffffff", "stroke-width":"1px", "r":"5"})
+  metros.attr({"fill":"#eeeeee", "stroke":"#ffffff", "stroke-width":"1px", "r":"5"})
     .attr("cx", function(d,i){
       var coord = self.proj([d.lon,d.lat]);
       return coord[0];
