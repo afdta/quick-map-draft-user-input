@@ -32,7 +32,7 @@
     var el = document.getElementById("wfrey-map-wrap");
     var map = new dotMap(el);
     var cols = ['#f0f9e8','#bae4bc','#7bccc4','#43a2ca','#0868ac']; //credit: Colorbrewer2.org 
-    //['#f7fbff','#deebf7',','#9ecae1','#6baed6',,'#2171b5','#08519c',]
+
     var callback = function(){
       var dots = this.metros;
 
@@ -45,11 +45,12 @@
       .attr("fill",function(d,i){
         return cols[d.cat]; //only use 1-4
       })
-      .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"})
-      //.attr("r",function(d,i){return Math.sqrt(((d.index/100)*maxA)/Math.PI)})
-      ;
+      .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"});
     }
-    map.setData(DAT).drawMap(callback).makeResponsive();
+
+    var textData = function(d){return ["Black-white segregation index: " + d.index, "Group: " + d.cat]}
+
+    map.setData(DAT).drawMap(callback).makeResponsive().showTooltips(textData);
   });
 </script>
 
