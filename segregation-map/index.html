@@ -17,11 +17,11 @@
 </body>
 
 <script>
-  var el = document.getElementById("wfrey-map-wrap");
-  var map = new dotMap(el);
+
   var repo = "./data/";
   var parser = function(ROW){
     return {
+      //metro code must be called CBSA_Code
       CBSA_Code: ROW.CBSA_Code,
       name: ROW.CBSA_Title,
       index: +ROW.Index,
@@ -29,17 +29,27 @@
     }
   };
   d3.csv((repo + "FreySegregationMap.csv"), parser, function(ERR,DAT){
-    console.log(DAT);
+    var el = document.getElementById("wfrey-map-wrap");
+    var map = new dotMap(el);
+    var cols = ['#f0f9e8','#bae4bc','#7bccc4','#43a2ca','#0868ac']; //credit: Colorbrewer2.org 
+    //['#f7fbff','#deebf7',','#9ecae1','#6baed6',,'#2171b5','#08519c',]
     var callback = function(){
-      //this == map object
-      var sel = this.metros.data(DAT, function(d,i){
-        return d.CBSA_Code;
-      });
-      sel.enter().append("circle");
-      sel.exit().remove("circle");
-      return sel;
-    };
-    map.drawMap(true, callback);
+      var dots = this.metros;
+
+      var maxR = 20;
+      var maxA = Math.PI*maxR*maxR;
+      var maxV = 100;
+
+      this.states.attr({"stroke":"#fefefe","stroke-width":"1px","fill":"#eeeeee"})
+      dots
+      .attr("fill",function(d,i){
+        return cols[d.cat]; //only use 1-4
+      })
+      .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"})
+      //.attr("r",function(d,i){return Math.sqrt(((d.index/100)*maxA)/Math.PI)})
+      ;
+    }
+    map.setData(DAT).drawMap(callback).makeResponsive();
   });
 </script>
 
