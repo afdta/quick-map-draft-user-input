@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--<link rel="stylesheet" type="text/css" href="quickmap.css">-->
+<script src="../d3min.js"></script>
+<script src="../map-class.js"></script>
+
+</head>
+
+
+<body style="margin:20px;">
+    <fieldset>
+        <legend>Upload your data (CSV format only)</legend>
+            <input type="file" name="Data upload" id="csvinput" accept=".csv" />
+   </fieldset>
+
+    <div id="user-input-map-wrap"></div>
+</body>
+
+<script>
+  //for more, see: https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
+  var input = document.getElementById("csvinput");
+  input.addEventListener("change", parseCSV, false);
+  function parseCSV(event) {
+    try{
+      var files = event.currentTarget.files;
+      var reader = new FileReader();
+          reader.readAsText(files[0]);
+          //to do: need to deal with errors in loading
+          reader.onloadend = function(event){
+              //var text = event.currentTarget.result; see: http://stackoverflow.com/questions/12077859/difference-between-this-and-event-target
+              var text = this.result;
+              var dat = d3.csv.parse(text, parser);
+
+              console.log("data loaded!");
+              console.log(dat);
+
+              drawMap(dat);
+          };
+    }
+    catch(e){
+      alert("Cannot open file. Possible cause(s): Your browser may not support modern file uploads.")
+    }
+
+    try{
+
+    }
+    catch(e){
+      alert("Error processing data. Data must be a CSV formatted text file.")
+    }
+  }
+
+  function parser(ROW){
+    return {
+      //metro code must be called CBSA_Code
+      CBSA_Code: ROW.CBSA_Code,
+      name: ROW.CBSA_Title,
+      index: +ROW.Index,
+      cat: +ROW.Group
+    }
+  };
+
+  function drawMap(DAT){
+    var el = document.getElementById("user-input-map-wrap");
+    var map = new dotMap(el);
+    var cols = ['#f0f9e8','#bae4bc','#7bccc4','#43a2ca','#0868ac']; //credit: Colorbrewer2.org 
+
+    var callback = function(){
+      var dots = this.metros;
+
+      var maxR = 20;
+      var maxA = Math.PI*maxR*maxR;
+      var maxV = 100;
+
+      this.states.attr({"stroke":"#fefefe","stroke-width":"1px","fill":"#eeeeee"})
+      dots
+      .attr("fill",function(d,i){
+        return cols[d.cat]; //only use 1-4
+      })
+      .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"});
+    }
+
+    var textData = function(d){return ["Black-white segregation index: " + d.index, "Group: " + d.cat]}
+
+    map.setData(DAT).drawMap(callback).makeResponsive().showTooltips(textData);
+  }
+
+</script>
+
+</html>
