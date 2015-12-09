@@ -27,17 +27,19 @@
   input.addEventListener("change", parseCSV, false);
   function parseCSV(event) {
     try{
-      var files = event.currentTarget.files;
+      var files = event.currentTarget.files; //could use this instead of event.currentTarget
       var reader = new FileReader();
           reader.readAsText(files[0]);
+          var type0 = files[0].type.toUpperCase();
+          if(type0.search("CSV") < 0){alert("Error: File does not appear to be CSV")};
           //to do: need to deal with errors in loading
           reader.onloadend = function(event){
               //var text = event.currentTarget.result; see: http://stackoverflow.com/questions/12077859/difference-between-this-and-event-target
               var text = this.result;
               var dat = d3.csv.parse(text, parser);
 
-              console.log("data loaded!");
-              console.log(dat);
+              //console.log("data loaded!");
+              //console.log(dat);
 
               drawMap(dat);
           };
