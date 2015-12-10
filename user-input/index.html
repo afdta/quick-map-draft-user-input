@@ -9,21 +9,132 @@
 <script src="../d3min.js"></script>
 <script src="../map-class.js"></script>
 
+
+<style>
+
+input[type="file"]{
+  display:none;
+}
+
+fieldset{
+  padding:15px;
+  border:1px solid #dddddd;
+}
+
+.c-fix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#data-keys-wrap{
+  padding:10px 3px;
+  margin:10px 0px 10px 0px;
+  background-color:#f0f0f0;
+  border:1px solid #aaaaaa;
+  display:none;
+}
+
+#data-keys{
+  padding:15px 0px 15px 0px;
+  border-radius:0px;
+  max-height:225px;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+fieldset.data-loaded #data-keys-wrap{
+  display:block;
+  border-radius:5px;
+}
+
+.key-map-menu-wrap{
+  width:47%;
+  margin-left:2%;
+  margin-right:2%;
+  display:inline-block;
+  overflow:hidden;
+}
+
+.key-map-menu-wrap p{
+  margin:0px 0px 2px 2px;
+  font-weight:bold;
+}
+
+.key-map-menu-wrap:nth-child(2n + 0){
+  margin-left:0%;
+}
+
+.key-map-menu-wrap select{
+  width:100%;
+  background-color:#ffffff;
+  background:#ffffff;
+  border:1px solid #aaaaaa;
+  outline:none;
+  padding:2px 2px 2px 2px;
+  line-height:1em;
+}
+
+p, a, h1, h2, h3, text, legend, option, label{
+  font-family:arial;
+  font-size:15px;
+}
+
+p{
+  margin:0px;
+  padding:0px;
+  line-height:1.25em;
+}
+
+/*Uses google colors*/
+.file-upload-button {
+    border: 0px solid #4285f4;
+    border-radius:5px;
+    width:100%;
+    display:block;
+    padding: 8px 0px;
+    cursor: pointer;
+    text-align:center;
+    background-color:#4285f4;
+    color:#ffffff;
+    transition:background-color 0.5s;
+}
+
+.file-upload-button:hover{
+  transition:background-color 0s;
+  background-color:#3079ed;
+}
+
+</style>
+
+
 </head>
 
 
 <body style="margin:20px;">
-    <fieldset>
-        <legend>Upload your data (CSV format only)</legend>
-            <input type="file" name="Data upload" id="csvinput" accept=".csv" />
-   </fieldset>
+  <fieldset id="data-fieldset">
+    <legend>Load data for map</legend>
+    <label for="csvinput" class="file-upload-button">
+      Select a file (CSV only)
+    </label>
+    <input type="file" name="Data upload" id="csvinput" placeholder="Select CSV data file" accept=".csv" />
+    <div id="data-keys-wrap"> 
+      <p style="margin:0px 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
+      <div id="data-keys" class="c-fix"> </div>
+      <p style="margin:0px 2% 0px 2%; padding-top:5px; border-top:1px solid #aaaaaa;">...</p>
+    </div>
 
-    <div id="user-input-map-wrap"></div>
+  </fieldset>
+
+  <div id="user-input-map-wrap"></div>
 </body>
 
 <script>
   //for more, see: https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
   var input = document.getElementById("csvinput");
+  var fieldset = document.getElementById("data-fieldset");
+  var datakeys = document.getElementById("data-keys");
+
   input.addEventListener("change", parseCSV, false);
   function parseCSV(event) {
     try{
@@ -35,13 +146,71 @@
           //to do: need to deal with errors in loading
           reader.onloadend = function(event){
               //var text = event.currentTarget.result; see: http://stackoverflow.com/questions/12077859/difference-between-this-and-event-target
-              var text = this.result;
-              var dat = d3.csv.parse(text, parser);
+
+              d3.select(fieldset).classed("data-loaded",true);
+              
+              try{
+                var text = this.result;
+                var dat = d3.csv.parse(text, parser);
+
+                var keys = Object.keys(dat[0]); //to do, ensure keys don't have spaces or restricted characters--just throw an error
+
+                for(k=0; k<keys.length;k++){
+
+                }
+                
+                var parameters = [{l:"Select an attribute", c:null},
+                                  {l:"As the metro ID", c:"cbsa_code"},
+                                  {l:"As the dot fill color", c:"fill"},
+                                  {l:"As the dot size", c:"radius"}]
+
+                //sm holds divs that hold titles (sm_t) and select menus (sm_m)
+                var sm = d3.select(datakeys).selectAll("div.key-map-menu-wrap").data(keys);
+                sm.enter().append("div").classed("key-map-menu-wrap", true);
+                sm.exit().remove();
+
+                //menu titles
+                var sm_t = sm.selectAll("p").data(function(d,i){return [d]});
+                sm_t.enter().append("p");
+                sm_t.exit().remove();
+                sm_t.text(function(d,i){return d})
+
+                //actual menus
+                var sm_m = sm.selectAll("select").data(function(d,i){return [d]});
+                sm_m.enter().append("select");
+                sm_m.exit().remove();
+
+                //menu options
+                var sm_o = sm_m.selectAll("option").data(parameters);
+                sm_o.enter().append("option");
+                sm_o.exit().remove();
+                sm_o.attr("value",function(d,i){
+                                    return d.c;
+                    })
+                    .text(function(d,i){
+                            return d.l;
+                    })
+                    .each(function(d,i){
+                      if(i===0){
+                        this.selected = true;
+                        this.disabled = true;
+                      }
+                    });
+
+                //data bound to menu is the keys from the uploaded data set
+                sm_m.on("change",function(d,i){
+                  alert(d + " maps to " + parameters[this.selectedIndex].c);
+                })
+
+              }
+              catch(e){
+                alert("Error parsing data file. " + e)
+              }
 
               //console.log("data loaded!");
               //console.log(dat);
 
-              drawMap(dat);
+              //drawMap(dat);
           };
     }
     catch(e){
@@ -57,6 +226,7 @@
   }
 
   function parser(ROW){
+    return ROW;
     return {
       //metro code must be called CBSA_Code
       CBSA_Code: ROW.CBSA_Code,
