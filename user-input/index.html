@@ -52,8 +52,13 @@ fieldset.data-loaded #data-keys-wrap{
   width:47%;
   margin-left:2%;
   margin-right:2%;
-  display:inline-block;
+  margin-bottom:10px;
+  float:left;
   overflow:hidden;
+}
+
+.key-map-menu-wrap:nth-child(2n + 0){
+  margin-left:0%;
 }
 
 .key-map-menu-wrap p{
@@ -61,8 +66,12 @@ fieldset.data-loaded #data-keys-wrap{
   font-weight:bold;
 }
 
-.key-map-menu-wrap:nth-child(2n + 0){
-  margin-left:0%;
+.key-map-menu-wrap.property-selected p::before{
+  content:"✓";
+}
+
+.key-map-menu-wrap.property-selected p{
+  color:#4285f4;
 }
 
 .key-map-menu-wrap select{
@@ -87,12 +96,12 @@ p{
 }
 
 /*Uses google colors*/
-.file-upload-button {
+.file-upload-button, #map-it-button{
     border: 0px solid #4285f4;
     border-radius:5px;
     width:100%;
     display:block;
-    padding: 8px 0px;
+    padding: 12px 0px;
     cursor: pointer;
     text-align:center;
     background-color:#4285f4;
@@ -100,10 +109,12 @@ p{
     transition:background-color 0.5s;
 }
 
-.file-upload-button:hover{
+.file-upload-button:hover, #map-it-button:hover{
   transition:background-color 0s;
   background-color:#3079ed;
 }
+
+
 
 </style>
 
@@ -119,10 +130,12 @@ p{
     </label>
     <input type="file" name="Data upload" id="csvinput" placeholder="Select CSV data file" accept=".csv" />
     <div id="data-keys-wrap"> 
-      <p style="margin:0px 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
+      <p style="margin:7px 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
       <div id="data-keys" class="c-fix"> </div>
       <p style="margin:0px 2% 0px 2%; padding-top:5px; border-top:1px solid #aaaaaa;">...</p>
     </div>
+
+    <div id="map-it-button"> </div>
 
   </fieldset>
 
@@ -153,16 +166,24 @@ p{
                 var text = this.result;
                 var dat = d3.csv.parse(text, parser);
 
-                var keys = Object.keys(dat[0]); //to do, ensure keys don't have spaces or restricted characters--just throw an error
+                console.log(dat);
+
+                var keys = Object.keys(dat[0]);
 
                 for(k=0; k<keys.length;k++){
 
                 }
                 
-                var parameters = [{l:"Select an attribute", c:null},
-                                  {l:"As the metro ID", c:"cbsa_code"},
-                                  {l:"As the dot fill color", c:"fill"},
-                                  {l:"As the dot size", c:"radius"}]
+                var parameters = [{l:"Select an attribute of the map", c:null},
+                                  {l:"Metro ID", c:"cbsa_code"},
+                                  {l:"Dot fill color", c:"fill"},
+                                  {l:"Dot size", c:"radius"}]
+
+                var mappings = {
+                                cbsa_code: {prop:null, menuref:null}, 
+                                fill: {prop:null, menuref:null}, 
+                                radius: {prop:null, menuref:null}
+                               };
 
                 //sm holds divs that hold titles (sm_t) and select menus (sm_m)
                 var sm = d3.select(datakeys).selectAll("div.key-map-menu-wrap").data(keys);
@@ -193,14 +214,30 @@ p{
                     .each(function(d,i){
                       if(i===0){
                         this.selected = true;
-                        this.disabled = true;
+                        //this.disabled = true;
                       }
                     });
 
                 //data bound to menu is the keys from the uploaded data set
                 sm_m.on("change",function(d,i){
-                  alert(d + " maps to " + parameters[this.selectedIndex].c);
-                })
+                  var map = mappings[parameters[this.selectedIndex].c];
+                  map.prop = d;
+
+                  try{
+                    //demonstrate the previously selected item for this encoding property has been de-selected
+                    if(!!map.menuref){
+                      d3.select(map.menuref.parentElement).classed("property-selected",false);
+                      map.menuref.selectedIndex = 0;
+                    }
+
+                    map.menuref = this; //set to div wrapper
+                    d3.select(map.menuref.parentElement).classed("property-selected", true);
+                  }
+                  catch(e){
+                    alert("An error has occurred, please refresh the page.d")
+                  }
+
+                });
 
               }
               catch(e){
@@ -227,13 +264,6 @@ p{
 
   function parser(ROW){
     return ROW;
-    return {
-      //metro code must be called CBSA_Code
-      CBSA_Code: ROW.CBSA_Code,
-      name: ROW.CBSA_Title,
-      index: +ROW.Index,
-      cat: +ROW.Group
-    }
   };
 
   function drawMap(DAT){
