@@ -1,3 +1,5 @@
+<!--NEED TO HANDLE ERRORS IN LOADING OR USER CANCELLATION: INTERFACE SHOULD RETURN TO BLANK-->
+
 <!DOCTYPE html>
 <html>
 
@@ -27,11 +29,25 @@ fieldset{
   clear: both;
 }
 
+
+#selection-review, #placeholder{
+  padding:10px 2%;
+  border:1px solid #aaaaaa;
+  border-radius:5px;
+  margin: 10px 0px 0px 0px;
+  display:none;  
+}
+#placeholder{display:block;padding:75px 10px;background-color:#f0f0f0;}
+#placeholder p{text-align:center;color:#aaaaaa;font-style:italic;}
+
+#selection-review > div{padding:3px;}
+
 #data-keys-wrap{
   padding:10px 3px;
-  margin:10px 0px 10px 0px;
+  margin:10px 0px 0px 0px;
   background-color:#f0f0f0;
   border:1px solid #aaaaaa;
+  border-radius:5px;
   display:none;
 }
 
@@ -43,10 +59,10 @@ fieldset{
   overflow-x:hidden;
 }
 
-fieldset.data-loaded #data-keys-wrap{
-  display:block;
-  border-radius:5px;
-}
+fieldset.data-loaded #data-keys-wrap{display:block;}
+fieldset.data-loaded #selection-review{display:block;}
+fieldset.data-loaded #placeholder{display:none;}
+
 
 .key-map-menu-wrap{
   width:47%;
@@ -130,12 +146,25 @@ p{
     </label>
     <input type="file" name="Data upload" id="csvinput" placeholder="Select CSV data file" accept=".csv" />
     <div id="data-keys-wrap"> 
-      <p style="margin:7px 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
+      <p style="margin:1% 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
       <div id="data-keys" class="c-fix"> </div>
-      <p style="margin:0px 2% 0px 2%; padding-top:5px; border-top:1px solid #aaaaaa;">...</p>
     </div>
 
-    <div id="map-it-button"> </div>
+    <div id="placeholder">
+      <p>No data loaded</p>
+    </div>
+
+    <div id="selection-review" class="c-fix">
+      <div id="selection-review-detail" style="float:left;width:70%;width:calc(72% - 6px)">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi nec nunc malesuada, cursus ipsum nec, fermentum risus. Donec eget lectus ut arcu venenatis dignissim. Pellentesque eget scelerisque tortor. In et dolor tincidunt, laoreet est vel, luctus lorem. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam quis dapibus ante, vitae mattis lacus. Donec vel justo nibh. Nunc in risus ut eros ullamcorper vehicula. Praesent fermentum pharetra neque, sed tempor massa rutrum eu. Sed at efficitur enim. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
+      </div>
+      <div id="selection-review-go" style="float:right;width:25%;width:calc(25% - 6px);height:100%">
+        <div id="map-it-button" style="height:100%;"> 
+          <p>Map It!</p>
+        </div>
+      </div>
+
+    </div>
 
   </fieldset>
 
