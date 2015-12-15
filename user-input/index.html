@@ -23,6 +23,14 @@ fieldset{
   border:1px solid #dddddd;
 }
 
+fieldset legend{
+  font-size:13px;
+  color:#666666;
+  border:1px solid #dddddd;
+  border-radius:5px;
+  padding:6px 11px;
+}
+
 .c-fix:after {
   content: "";
   display: table;
@@ -140,7 +148,7 @@ p{
 
 <body style="margin:20px;">
   <fieldset id="data-fieldset">
-    <legend>Load data for map</legend>
+    <legend>Let's build a metro map!</legend>
     <label for="csvinput" class="file-upload-button">
       Select a file (CSV only)
     </label>
@@ -148,6 +156,7 @@ p{
     <div id="data-keys-wrap"> 
       <p style="margin:1% 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
       <div id="data-keys" class="c-fix"> </div>
+      <div style="margin:0px 2% 0px 2%;height:1px;border-top:1px solid #aaaaaa;"></div>
     </div>
 
     <div id="placeholder">
@@ -156,7 +165,7 @@ p{
 
     <div id="selection-review" class="c-fix">
       <div id="selection-review-detail" style="float:left;width:70%;width:calc(72% - 6px)">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi nec nunc malesuada, cursus ipsum nec, fermentum risus. Donec eget lectus ut arcu venenatis dignissim. Pellentesque eget scelerisque tortor. In et dolor tincidunt, laoreet est vel, luctus lorem. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam quis dapibus ante, vitae mattis lacus. Donec vel justo nibh. Nunc in risus ut eros ullamcorper vehicula. Praesent fermentum pharetra neque, sed tempor massa rutrum eu. Sed at efficitur enim. Interdum et malesuada fames ac ante ipsum primis in faucibus.</p>
+        
       </div>
       <div id="selection-review-go" style="float:right;width:25%;width:calc(25% - 6px);height:100%">
         <div id="map-it-button" style="height:100%;"> 
@@ -195,23 +204,25 @@ p{
                 var text = this.result;
                 var dat = d3.csv.parse(text, parser);
 
-                console.log(dat);
-
+                //generate data to be tied to each variable's menu
                 var keys = Object.keys(dat[0]);
 
-                for(k=0; k<keys.length;k++){
-
-                }
+                //state of select menus: 
+                //varName to mapAttr lookup -- only menus that the user has interacted with will be included in the lookup
+                //menuState needs to exist in the case that a user nullifies a given variable -- without a two-way mapping, the association is lost in that case
+                var menuState = {};
                 
-                var parameters = [{l:"Select an attribute of the map", c:null},
+                //options for each variable's menu
+                var mapAttrs = [{l:"Select an attribute of the map", c:null},
                                   {l:"Metro ID", c:"cbsa_code"},
                                   {l:"Dot fill color", c:"fill"},
                                   {l:"Dot size", c:"radius"}]
 
-                var mappings = {
-                                cbsa_code: {prop:null, menuref:null}, 
-                                fill: {prop:null, menuref:null}, 
-                                radius: {prop:null, menuref:null}
+                //state of mapAttr selections: mapAttr to varName lookup 
+                var mapAttrState = {
+                                cbsa_code: {varName:null, menuref:null}, 
+                                fill: {varName:null, menuref:null}, 
+                                radius: {varName:null, menuref:null}
                                };
 
                 //sm holds divs that hold titles (sm_t) and select menus (sm_m)
@@ -231,7 +242,7 @@ p{
                 sm_m.exit().remove();
 
                 //menu options
-                var sm_o = sm_m.selectAll("option").data(parameters);
+                var sm_o = sm_m.selectAll("option").data(mapAttrs);
                 sm_o.enter().append("option");
                 sm_o.exit().remove();
                 sm_o.attr("value",function(d,i){
@@ -247,23 +258,77 @@ p{
                       }
                     });
 
-                //data bound to menu is the keys from the uploaded data set
+                //data bound to menu is the varName from the uploaded data set
                 sm_m.on("change",function(d,i){
-                  var map = mappings[parameters[this.selectedIndex].c];
-                  map.prop = d;
-
+                  
                   try{
-                    //demonstrate the previously selected item for this encoding property has been de-selected
-                    if(!!map.menuref){
-                      d3.select(map.menuref.parentElement).classed("property-selected",false);
-                      map.menuref.selectedIndex = 0;
+                    //user selected map attribute--color, radius, metro ID--or null if de-selected
+                    var selectedMapAttr = mapAttrs[this.selectedIndex].c;
+                    
+                    //has this variable been assigned before?
+                    if(menuState.hasOwnProperty(d)){
+                      var lastSelectedMapAttr = menuState[d];
                     }
+                    else{
+                      var lastSelectedMapAttr = null;
+                    }
+
+                    //record selection in menuState
+                    menuState[d] = selectedMapAttr;
+
+                                  console.log("Last selected: " + lastSelectedMapAttr);
+
+                    //CASE 0: if user nullifies this variable, need to de-select and remove from variable mapping state
+                    //CASE 1: if user selects an attribute for this variable, update the mapAttrState, indicate the selection, and remove any prior selection
+                    if(selectedMapAttr===null){
+                      //indicate the user has de-selected this data variable
+                      d3.select(this.parentElement).classed("property-selected",false); 
+                      
+                      //if lastSelectedMapAttr is not null, then the mapAttrState object needs to be reset, otherwise no-op (which should never occur given that this is a CHANGE listener--null to null is not change)
+                      if(lastSelectedMapAttr!==null){
+                        mapAttrState[lastSelectedMapAttr].varName = null;
+                        mapAttrState[lastSelectedMapAttr].menuref = null;
+                      }
+                    }
+                    else{
+                      //get mapping state for the selectedMapAttr
+                      var mappingState = mapAttrState[selectedMapAttr];
+
+                      //was this mapAttr previously assigned to a variable? if so, remove any association in menuState -- not absolutely necessary
+                      if(!!mappingState.varName){menuState[mappingState.varName] = null;}
+
+                      //if mapAttr is currently assigned to a variable, remove that assignment
+                      if(!!mappingState.menuref){
+                        d3.select(map.menuref.parentElement).classed("property-selected",false);
+                        map.menuref.selectedIndex = 0;
+                      }
+
+                      //set mapping state
+                      mappingState.varName = d.varName; 
+
+
+
+                    }
+
+
+       
 
                     map.menuref = this; //set to div wrapper
                     d3.select(map.menuref.parentElement).classed("property-selected", true);
                   }
                   catch(e){
                     alert("An error has occurred, please refresh the page.d")
+                  }
+                  finally{
+                    var current = [];
+                    current.push("Metro ID: <span>" + mapAttrState.cbsa_code.varName + "</span>");
+                    current.push("Dot fill color: <span>" + mapAttrState.fill.varName + "</span>");
+                    current.push("Dot size: <span>" + (mapAttrState.radius.varName===null ? "Equally sized" : mapAttrState.radius.varName) + "</span>");
+
+                    var currentSel = d3.select("#selection-review-detail").selectAll("p").data(current);
+                    currentSel.enter().append("p");
+                    currentSel.exit().remove();
+                    currentSel.html(function(d,i){return d});
                   }
 
                 });
