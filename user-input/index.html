@@ -21,7 +21,9 @@ input[type="file"]{
 
 fieldset{
   padding:15px;
+  margin:0px;
   border:1px solid #dddddd;
+  border-radius:5px;
 }
 
 fieldset legend{
@@ -139,7 +141,21 @@ fieldset.map-not-ready #map-it-button.quick-map-button:hover{
 #map-it-button.quick-map-button p{color:#ffffff;}
 fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
 
-
+/*The quick map container contains the map SVG. It shouldn't have any padding because it also contains the map tooltip. Therefore it should match the size of the SVG exactly.*/
+.quick-map-container{
+  margin-top:15px;
+  border:1px solid #dddddd;
+  border-radius:5px;
+  padding:0px 0px;
+}
+.quick-map-container p{margin:0px 2% 5px 2%;}
+.quick-map-container textarea{
+  box-sizing:border-box;
+  width:96%;
+  margin:3px 2%;
+  border-color:#dddddd;
+  padding:5px;
+}
 
 </style>
 
@@ -148,6 +164,9 @@ fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
 
 
 <body style="margin:20px;">
+
+  <div style="position:relative;margin:auto;max-width:950px;">
+
   <fieldset id="data-fieldset" class="map-not-ready">
     <legend>Let's build a metro map! <span style="font-size:0.75em;font-style:italic">v0.1 (12/15/2015)</span></legend>
     
@@ -173,8 +192,8 @@ fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
 
   </fieldset>
 
-  <div id="user-input-map-wrap">
-    
+  <div id="user-input-map-wrap"></div>
+
   </div>
 </body>
 
@@ -326,11 +345,13 @@ fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
       .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"});
 
       var svgString = '<svg height="' + this.svg.style("height") + '" width="' + this.svg.style("width") + '">' + this.svg.html() + "</svg>";
-      this.wrap.append("p").text("Generated SVG:");
-      var ta = this.wrap.append("textarea").attr({"rows":"10", "cols":"50"});
+
+      var copyPaste = this.currentMap.append("div");
+
+      copyPaste.append("p").html('<span style="font-weight:bold">Below is the SVG code for this map.</span> <span>Copy and paste it into a plain text file and save with a .svg file extension to view/edit with your graphics software.</span>');
+      var ta = copyPaste.append("textarea").attr({"rows":"6"});
       ta.node().readOnly = true;
       ta.on("focus", function(d,i){
-        //this.focus();
         this.select();
       })
       .text(svgString);

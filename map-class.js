@@ -7,12 +7,14 @@ function dotMap(container){
   this.wrap = d3.select(container);
   this.width = 950;
   this.height = this.width * this.aspect;
+
+  this.currentMap = this.wrap.insert("div",":first-child").classed("quick-map-container",true);
   
-  this.svg = this.wrap.insert("svg",":first-child").style({"width":"100%", "height":(this.height+"px")});
+  this.svg = this.currentMap.append("svg").style({"width":"100%", "height":(this.height+"px")});
   this.stateG = this.svg.append("g").attr("transform","translate(0,0)");
   this.dotG = this.svg.append("g").attr("transform","translate(0,0)");
 
-  this.tooltip = this.wrap.append("div")
+  this.tooltip = this.currentMap.append("div")
       .style({"position":"absolute", "display":"block", "visibility":"hidden",
               "width":"auto", "height":"auto", "pointer-events":"none",
               "top":"0px", "left":"0px", "padding":"5px 8px 5px 8px",
@@ -20,7 +22,7 @@ function dotMap(container){
             });
 
   //create a non-visible area to test tooltip width without worrying about (browser-forced) text wrapping (when tooltip overflows window)
-  this.tiptest = this.wrap.append("div")
+  this.tiptest = this.currentMap.append("div")
       .style({"position":"absolute", "display":"block", "visibility":"hidden",
               "width":"auto", "height":"auto", "pointer-events":"none",
               "top":"0px", "left":"0px", "padding":"5px 8px 5px 8px",
@@ -40,7 +42,7 @@ function dotMap(container){
   this.data = null; //holds data, set in setData method
 
   //basic styles
-  this.wrap.style({"position":"relative"});
+  this.currentMap.style({"position":"relative"});
 }
 
 dotMap.prototype.aspect = 0.7; //determines the height of the svg container
@@ -61,14 +63,14 @@ dotMap.prototype.lonlat = {"t100":[{"CBSA_Code":"10420","CBSA_Title":"Akron, OH"
 dotMap.prototype.setDim = function(){
   try{
     //var wiw = window.innerWidth;
-    var rect = this.wrap.node().getBoundingClientRect();
+    var rect = this.wrap.node().getBoundingClientRect(); //use outer wrap instead of currentMap
     var rwidth = rect.right-rect.left;
-    if(rwidth < 300 || rwidth > 1000){
+    if(rwidth < 300 || rwidth > 1600){
       throw "Bad width calculation";
     }
   }
   catch(e){
-    var rwidth = 650;
+    var rwidth = 950;
   }
 
   //for svg map
