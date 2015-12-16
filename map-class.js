@@ -8,7 +8,7 @@ function dotMap(container){
   this.width = 950;
   this.height = this.width * this.aspect;
   
-  this.svg = this.wrap.append("svg").style({"width":"100%", "height":(this.height+"px")});
+  this.svg = this.wrap.insert("svg",":first-child").style({"width":"100%", "height":(this.height+"px")});
   this.stateG = this.svg.append("g").attr("transform","translate(0,0)");
   this.dotG = this.svg.append("g").attr("transform","translate(0,0)");
 

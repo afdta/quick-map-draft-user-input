@@ -1,4 +1,5 @@
 <!--NEED TO HANDLE ERRORS IN LOADING OR USER CANCELLATION: INTERFACE SHOULD RETURN TO BLANK-->
+<!--Need to deal with errors in loading data / user cancellation of upload-->
 
 <!DOCTYPE html>
 <html>
@@ -24,7 +25,6 @@ fieldset{
 }
 
 fieldset legend{
-  font-size:13px;
   color:#666666;
   border:1px solid #dddddd;
   border-radius:5px;
@@ -39,22 +39,22 @@ fieldset legend{
 
 
 #selection-review, #placeholder{
-  padding:10px 2%;
-  border:1px solid #aaaaaa;
+  padding:0px 2%;
+  border:1px solid #dddddd;
   border-radius:5px;
-  margin: 10px 0px 0px 0px;
+  margin: 2% 0px 0px 0px;
   display:none;  
 }
-#placeholder{display:block;padding:75px 10px;background-color:#f0f0f0;}
+#placeholder{display:block;padding:75px 10px;background-color:#dddddd;}
 #placeholder p{text-align:center;color:#aaaaaa;font-style:italic;}
 
 #selection-review > div{padding:3px;}
 
 #data-keys-wrap{
   padding:10px 3px;
-  margin:10px 0px 0px 0px;
-  background-color:#f0f0f0;
-  border:1px solid #aaaaaa;
+  margin:2% 0px 0px 0px;
+  background-color:#dddddd;
+  border:1px solid #dddddd;
   border-radius:5px;
   display:none;
 }
@@ -70,7 +70,6 @@ fieldset legend{
 fieldset.data-loaded #data-keys-wrap{display:block;}
 fieldset.data-loaded #selection-review{display:block;}
 fieldset.data-loaded #placeholder{display:none;}
-
 
 .key-map-menu-wrap{
   width:47%;
@@ -90,14 +89,6 @@ fieldset.data-loaded #placeholder{display:none;}
   font-weight:bold;
 }
 
-.key-map-menu-wrap.property-selected p::before{
-  content:"✓";
-}
-
-.key-map-menu-wrap.property-selected p{
-  color:#4285f4;
-}
-
 .key-map-menu-wrap select{
   width:100%;
   background-color:#ffffff;
@@ -111,6 +102,7 @@ fieldset.data-loaded #placeholder{display:none;}
 p, a, h1, h2, h3, text, legend, option, label{
   font-family:arial;
   font-size:15px;
+  color:#333333;
 }
 
 p{
@@ -120,10 +112,9 @@ p{
 }
 
 /*Uses google colors*/
-.file-upload-button, #map-it-button{
+.quick-map-button{
     border: 0px solid #4285f4;
     border-radius:5px;
-    width:100%;
     display:block;
     padding: 12px 0px;
     cursor: pointer;
@@ -131,12 +122,22 @@ p{
     background-color:#4285f4;
     color:#ffffff;
     transition:background-color 0.5s;
+    float:left;
 }
 
-.file-upload-button:hover, #map-it-button:hover{
+
+.quick-map-button:hover{
   transition:background-color 0s;
   background-color:#3079ed;
 }
+
+fieldset.map-not-ready #map-it-button.quick-map-button,
+fieldset.map-not-ready #map-it-button.quick-map-button:hover{
+  background-color:#dddddd
+}
+
+#map-it-button.quick-map-button p{color:#ffffff;}
+fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
 
 
 
@@ -147,37 +148,34 @@ p{
 
 
 <body style="margin:20px;">
-  <fieldset id="data-fieldset">
-    <legend>Let's build a metro map!</legend>
-    <label for="csvinput" class="file-upload-button">
-      Select a file (CSV only)
-    </label>
-    <input type="file" name="Data upload" id="csvinput" placeholder="Select CSV data file" accept=".csv" />
-    <div id="data-keys-wrap"> 
-      <p style="margin:1% 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">How should the fields in your data be represented on the map?</p> 
+  <fieldset id="data-fieldset" class="map-not-ready">
+    <legend>Let's build a metro map! <span style="font-size:0.75em;font-style:italic">v0.1 (12/15/2015)</span></legend>
+    
+    <div id="button-wrap" class="c-fix">
+      <label for="csvinput" class="quick-map-button" style="width:65%">
+        Select a file (CSV only)
+      </label>
+      <input type="file" name="Data upload" id="csvinput" placeholder="Select CSV data file" accept=".csv" />
+      
+      <div id="map-it-button" class="quick-map-button" style="width:33%;margin-left:2%;"> 
+        <p>Map It!</p>
+      </div>
+    </div>
+
+    <div id="data-keys-wrap" class="c-fix"> 
+      <p style="margin:1% 2% 0px 2%; padding-bottom:3px; border-bottom:1px solid #aaaaaa;font-style:italic;">Assign your data to the following map attributes</p> 
       <div id="data-keys" class="c-fix"> </div>
-      <div style="margin:0px 2% 0px 2%;height:1px;border-top:1px solid #aaaaaa;"></div>
     </div>
 
     <div id="placeholder">
       <p>No data loaded</p>
     </div>
 
-    <div id="selection-review" class="c-fix">
-      <div id="selection-review-detail" style="float:left;width:70%;width:calc(72% - 6px)">
-        
-      </div>
-      <div id="selection-review-go" style="float:right;width:25%;width:calc(25% - 6px);height:100%">
-        <div id="map-it-button" style="height:100%;"> 
-          <p>Map It!</p>
-        </div>
-      </div>
-
-    </div>
-
   </fieldset>
 
-  <div id="user-input-map-wrap"></div>
+  <div id="user-input-map-wrap">
+    
+  </div>
 </body>
 
 <script>
@@ -185,6 +183,8 @@ p{
   var input = document.getElementById("csvinput");
   var fieldset = document.getElementById("data-fieldset");
   var datakeys = document.getElementById("data-keys");
+  var mapit = document.getElementById("map-it-button");
+  var mapwrap = document.getElementById("user-input-map-wrap");
 
   input.addEventListener("change", parseCSV, false);
   function parseCSV(event) {
@@ -194,62 +194,56 @@ p{
           reader.readAsText(files[0]);
           var type0 = files[0].type.toUpperCase();
           if(type0.search("CSV") < 0){alert("Error: File does not appear to be CSV")};
-          //to do: need to deal with errors in loading
+          
           reader.onloadend = function(event){
               //var text = event.currentTarget.result; see: http://stackoverflow.com/questions/12077859/difference-between-this-and-event-target
-
-              d3.select(fieldset).classed("data-loaded",true);
+              d3.select(fieldset).classed("data-loaded",true); //not necessarilly true!
               
               try{
                 var text = this.result;
                 var dat = d3.csv.parse(text, parser);
 
                 //generate data to be tied to each variable's menu
-                var keys = Object.keys(dat[0]);
-
-                //state of select menus: 
-                //varName to mapAttr lookup -- only menus that the user has interacted with will be included in the lookup
-                //menuState needs to exist in the case that a user nullifies a given variable -- without a two-way mapping, the association is lost in that case
-                var menuState = {};
+                var varNames = Object.keys(dat[0]);
+                varNames.unshift("Select a variable from your data")
                 
                 //options for each variable's menu
-                var mapAttrs = [{l:"Select an attribute of the map", c:null},
-                                  {l:"Metro ID", c:"cbsa_code"},
-                                  {l:"Dot fill color", c:"fill"},
-                                  {l:"Dot size", c:"radius"}]
+                var mapAttrs = [{l:"Metro ID [required]", c:"cbsa_code"},
+                                {l:"Dot fill color", c:"fill"},
+                                {l:"Dot size", c:"radius"}]
 
                 //state of mapAttr selections: mapAttr to varName lookup 
                 var mapAttrState = {
-                                cbsa_code: {varName:null, menuref:null}, 
-                                fill: {varName:null, menuref:null}, 
-                                radius: {varName:null, menuref:null}
+                                cbsa_code: null, 
+                                fill: null, 
+                                radius: null
                                };
 
                 //sm holds divs that hold titles (sm_t) and select menus (sm_m)
-                var sm = d3.select(datakeys).selectAll("div.key-map-menu-wrap").data(keys);
+                var sm = d3.select(datakeys).selectAll("div.key-map-menu-wrap").data(mapAttrs);
                 sm.enter().append("div").classed("key-map-menu-wrap", true);
                 sm.exit().remove();
 
                 //menu titles
-                var sm_t = sm.selectAll("p").data(function(d,i){return [d]});
+                var sm_t = sm.selectAll("p").data(function(d,i){return [d.l]});
                 sm_t.enter().append("p");
                 sm_t.exit().remove();
                 sm_t.text(function(d,i){return d})
 
                 //actual menus
-                var sm_m = sm.selectAll("select").data(function(d,i){return [d]});
+                var sm_m = sm.selectAll("select").data(function(d,i){return [d.c]});
                 sm_m.enter().append("select");
                 sm_m.exit().remove();
 
                 //menu options
-                var sm_o = sm_m.selectAll("option").data(mapAttrs);
+                var sm_o = sm_m.selectAll("option").data(varNames);
                 sm_o.enter().append("option");
                 sm_o.exit().remove();
                 sm_o.attr("value",function(d,i){
-                                    return d.c;
+                                    return d;
                     })
                     .text(function(d,i){
-                            return d.l;
+                            return d;
                     })
                     .each(function(d,i){
                       if(i===0){
@@ -258,82 +252,35 @@ p{
                       }
                     });
 
-                //data bound to menu is the varName from the uploaded data set
+                //data bound to menu is the mapAttr code (e.g. cbsa_code|fill|radius)
+                var mapIsReady = false;
                 sm_m.on("change",function(d,i){
-                  
                   try{
-                    //user selected map attribute--color, radius, metro ID--or null if de-selected
-                    var selectedMapAttr = mapAttrs[this.selectedIndex].c;
-                    
-                    //has this variable been assigned before?
-                    if(menuState.hasOwnProperty(d)){
-                      var lastSelectedMapAttr = menuState[d];
+                    if(this.selectedIndex===0){
+                      mapAttrState[d] = null; //user has reset
                     }
                     else{
-                      var lastSelectedMapAttr = null;
+                      mapAttrState[d] = varNames[this.selectedIndex];
                     }
-
-                    //record selection in menuState
-                    menuState[d] = selectedMapAttr;
-
-                                  console.log("Last selected: " + lastSelectedMapAttr);
-
-                    //CASE 0: if user nullifies this variable, need to de-select and remove from variable mapping state
-                    //CASE 1: if user selects an attribute for this variable, update the mapAttrState, indicate the selection, and remove any prior selection
-                    if(selectedMapAttr===null){
-                      //indicate the user has de-selected this data variable
-                      d3.select(this.parentElement).classed("property-selected",false); 
-                      
-                      //if lastSelectedMapAttr is not null, then the mapAttrState object needs to be reset, otherwise no-op (which should never occur given that this is a CHANGE listener--null to null is not change)
-                      if(lastSelectedMapAttr!==null){
-                        mapAttrState[lastSelectedMapAttr].varName = null;
-                        mapAttrState[lastSelectedMapAttr].menuref = null;
-                      }
-                    }
-                    else{
-                      //get mapping state for the selectedMapAttr
-                      var mappingState = mapAttrState[selectedMapAttr];
-
-                      //was this mapAttr previously assigned to a variable? if so, remove any association in menuState -- not absolutely necessary
-                      if(!!mappingState.varName){menuState[mappingState.varName] = null;}
-
-                      //if mapAttr is currently assigned to a variable, remove that assignment
-                      if(!!mappingState.menuref){
-                        d3.select(map.menuref.parentElement).classed("property-selected",false);
-                        map.menuref.selectedIndex = 0;
-                      }
-
-                      //set mapping state
-                      mappingState.varName = d.varName; 
-
-
-
-                    }
-
-
-       
-
-                    map.menuref = this; //set to div wrapper
-                    d3.select(map.menuref.parentElement).classed("property-selected", true);
                   }
                   catch(e){
                     alert("An error has occurred, please refresh the page.d")
                   }
                   finally{
-                    var current = [];
-                    current.push("Metro ID: <span>" + mapAttrState.cbsa_code.varName + "</span>");
-                    current.push("Dot fill color: <span>" + mapAttrState.fill.varName + "</span>");
-                    current.push("Dot size: <span>" + (mapAttrState.radius.varName===null ? "Equally sized" : mapAttrState.radius.varName) + "</span>");
-
-                    var currentSel = d3.select("#selection-review-detail").selectAll("p").data(current);
-                    currentSel.enter().append("p");
-                    currentSel.exit().remove();
-                    currentSel.html(function(d,i){return d});
+                    if(!!mapAttrState.cbsa_code){mapIsReady = true;}
+                    else{mapIsReady = false;}
+                    d3.select(fieldset).classed("map-not-ready",!mapIsReady);
                   }
+                }); //end select menu change listener
 
-                });
+                d3.select(mapit).on("mousedown", function(d,i){
+                  if(mapIsReady){ 
+                    drawMap(dat, mapAttrState);
 
-              }
+                  }
+                }); //end map it mousedown listener
+
+              } //end main [try] code block in loadend listener
               catch(e){
                 alert("Error parsing data file. " + e)
               }
@@ -360,9 +307,8 @@ p{
     return ROW;
   };
 
-  function drawMap(DAT){
-    var el = document.getElementById("user-input-map-wrap");
-    var map = new dotMap(el);
+  function drawMap(DAT, ATTRS){;
+    var map = new dotMap(mapwrap);
     var cols = ['#f0f9e8','#bae4bc','#7bccc4','#43a2ca','#0868ac']; //credit: Colorbrewer2.org 
 
     var callback = function(){
@@ -375,14 +321,14 @@ p{
       this.states.attr({"stroke":"#fefefe","stroke-width":"1px","fill":"#eeeeee"})
       dots
       .attr("fill",function(d,i){
-        return cols[d.cat]; //only use 1-4
+        return cols[d[ATTRS.fill]]; //only use 1-4
       })
       .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"});
     }
 
-    var textData = function(d){return ["Black-white segregation index: " + d.index, "Group: " + d.cat]}
+    var textData = function(d){return ["Black-white segregation index: " + d.index, "Group: " + d[ATTRS.fill]]}
 
-    map.setData(DAT).drawMap(callback).makeResponsive().showTooltips(textData);
+    map.setData(DAT, ATTRS.cbsa_code).drawMap(callback).makeResponsive().showTooltips(textData);
   }
 
 </script>
