@@ -329,8 +329,8 @@ fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
       this.wrap.append("p").text("Generated SVG:");
       var ta = this.wrap.append("textarea").attr({"rows":"10", "cols":"50"});
       ta.node().readOnly = true;
-      ta.on("mouseenter", function(d,i){
-        this.focus();
+      ta.on("focus", function(d,i){
+        //this.focus();
         this.select();
       })
       .text(svgString);
