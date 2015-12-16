@@ -324,6 +324,16 @@ fieldset.map-not-ready #map-it-button.quick-map-button p{color:#aaaaaa;}
         return cols[d[ATTRS.fill]]; //only use 1-4
       })
       .attr({"r":"12","stroke":"#ffffff","stroke-width":"3px"});
+
+      var svgString = '<svg height="' + this.svg.style("height") + '" width="' + this.svg.style("width") + '">' + this.svg.html() + "</svg>";
+      this.wrap.append("p").text("Generated SVG:");
+      var ta = this.wrap.append("textarea").attr({"rows":"10", "cols":"50"});
+      ta.node().readOnly = true;
+      ta.on("mouseenter", function(d,i){
+        this.focus();
+        this.select();
+      })
+      .text(svgString);
     }
 
     var textData = function(d){return ["Black-white segregation index: " + d.index, "Group: " + d[ATTRS.fill]]}
